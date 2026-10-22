@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Como checamos | Placar da Verdade</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script src="tema.js"></script>
 <meta name="description" content="Como o Placar da Verdade checa o debate ao vivo: as etapas, as regras do juiz, a conferência do áudio, a auditoria pós-debate e os dados abertos.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,10 +13,8 @@
 <style>
   :root { --fundo: #e4e6e3; --tela: #fbfbf8; --tinta: #1b1d1c; --apagado: #5e625f; --borda: #b9bdb8;
     --verdadeiro: #1d8a4a; --impreciso: #e07b14; --falso: #c62828; --proposta: #2457a6; --sobre-tinta: #fff; color-scheme: light; }
-  @media (prefers-color-scheme: dark) {
-    :root { color-scheme: dark; --fundo: #121413; --tela: #1d201f; --tinta: #e8eae7; --apagado: #a2a7a3; --borda: #3b403d;
-      --verdadeiro: #22985a; --falso: #d93a35; --proposta: #7aa3e8; --sobre-tinta: #121413; }
-  }
+  :root[data-tema="escuro"] { color-scheme: dark; --fundo: #121413; --tela: #1d201f; --tinta: #e8eae7; --apagado: #a2a7a3; --borda: #3b403d;
+    --verdadeiro: #22985a; --falso: #d93a35; --proposta: #7aa3e8; --sobre-tinta: #121413; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--fundo); color: var(--tinta); font: 400 1rem/1.6 "Archivo", system-ui, sans-serif; }
   a { color: var(--proposta); }
