@@ -13,7 +13,8 @@ Visão geral para humanos: `README.md`. Regras do juiz explicadas ao público: `
 | `site/` | Site estático: `index.html` (CSS inline), `app.js`, `metodologia.html/.js`, `_headers` (CSP) |
 | `worker.js` | Cloudflare Worker: contador ao vivo (Durable Object, `/ao-vivo`) e `/contestar` (KV `CONTESTACOES`) |
 | `contestacoes.mjs` | Lista os avisos "Achou erro nesta checagem?" (`npm run contestacoes`) |
-| `teste.mjs` | Teste do filtro de datas da busca (`node teste.mjs`) |
+| `fonte.mjs` | Valida a fonte citada pelo juiz: só vale URL que veio da busca/Perplexity; sem ela, `em_revisao` |
+| `teste.mjs`, `testes/` | Testes do filtro de datas e da validação de fonte (`npm test` roda os dois) |
 | `tmp/` | **Ignorado pelo git, mas guarda os dados dos debates** (ver abaixo). Não apagar |
 
 ## Fluxo do robô

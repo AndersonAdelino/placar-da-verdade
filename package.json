@@ -8,7 +8,8 @@
     "voz": "node voz.mjs cadastrar",
     "site": "wrangler dev",
     "deploy": "wrangler deploy",
-    "contestacoes": "node contestacoes.mjs"
+    "contestacoes": "node contestacoes.mjs",
+    "test": "node --test testes/*.test.mjs && node teste.mjs"
   },
   "keywords": [],
   "author": "",
