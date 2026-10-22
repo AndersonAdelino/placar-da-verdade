@@ -121,16 +121,16 @@ function desenharFatos(d) {
     return `<li class="fato decl ${v}${vistosIds && !vistosIds.has(x.id) ? ' novo' : ''}" id="fato-${x.id}">
       <div class="cab"><span class="tecla ${v}">${ROTULO[v]}</span><b>${esc(nome)}</b><span>${horaDe(x.t)}</span><span class="tema">${esc(x.tema)}</span>${x.ja_checado ? `<span class="ja">↺ já checado em ${esc(x.ja_checado.data.split('-').reverse().slice(0, 2).join('/'))}</span>` : ''}</div>
       <p class="disse">${esc(x.afirmacao)}</p>
-      <details${STORY ? ' open' : ''}><summary>Ver dados e fonte</summary>
+      ${x.motivo ? `<p class="motivo">${esc(x.motivo)}</p>` : ''}
+      <details${STORY ? ' open' : ''}><summary>Ver a fala e a fonte</summary>
         ${x.ja_checado ? `<p class="corrigido">Repetiu o que disse em outro debate (“${esc(x.ja_checado.afirmacao)}”): o veredito foi reaproveitado da checagem anterior.</p>` : ''}
         ${x.literal ? `<p class="literal">Frase dita: “${esc(x.literal)}”</p>` : ''}
         ${x.contexto ? `<p class="ctx">${esc(x.contexto)}</p>` : ''}
-        ${x.motivo ? `<p class="motivo">${esc(x.motivo)}</p>` : ''}
         ${x.corrigido ? `<p class="corrigido">Revisado após o debate · ao vivo era <b>${ROTULO[vered(x.corrigido.antes)]}</b>${x.corrigido.afirmacao_antes ? ` (o robô tinha entendido: “${esc(x.corrigido.afirmacao_antes)}”)` : ''}</p>` : ''}
         <div class="fonte">${x.fonte ? `Fonte: <a href="${link(x.fonte.url)}" target="_blank" rel="noopener">${esc(x.fonte.titulo)}</a> (${esc(host(x.fonte.url))})` : 'Nenhuma fonte encontrada.'}</div>
         <button class="botao-texto contestar" type="button" data-id="${x.id}">Achou erro nesta checagem? Avise</button>
       </details>
-      <button class="partilhar" type="button" data-id="${x.id}" aria-label="Compartilhar este fato">↗ Compartilhar</button>
+      <button class="partilhar icone" type="button" data-id="${x.id}" aria-label="Compartilhar este fato" title="Compartilhar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg></button>
     </li>`
   }).join('') : itens.length ? '<li class="vazio">Nenhum fato com esses filtros. <button class="botao-texto" type="button" data-limpar="tudo">Limpar filtros</button></li>'
     : '<li class="vazio">Os fatos aparecem aqui quando um candidato citar um dado que dá para checar.</li>'
@@ -568,8 +568,8 @@ function audiencia(espera = 2000, primeira = true) {
     const n = +d.agora || 0, v = +d.visitas || 0
     $('audiencia').hidden = false
     $('audiencia').innerHTML = `<b>${n.toLocaleString('pt-BR')}</b> ${n === 1 ? 'pessoa assistindo' : 'pessoas assistindo'} agora` +
-      (v ? ` · <b>${v.toLocaleString('pt-BR')}</b> ${v === 1 ? 'visita' : 'visitas'}` : '')
+      (v ? `<span class="visitas"> · <b>${v.toLocaleString('pt-BR')}</b> ${v === 1 ? 'visita' : 'visitas'}</span>` : '')
   }
-  ws.onclose = () => setTimeout(() => audiencia(Math.min(espera * 2, 60000), false), espera + Math.random() * 1000)
+  ws.onclose = () => ($('audiencia').hidden = true, setTimeout(() => audiencia(Math.min(espera * 2, 60000), false), espera + Math.random() * 1000)) // sem conexão, esconde o número em vez de mostrar um velho
 }
 audiencia()
