@@ -4,7 +4,7 @@
 import { DurableObject } from 'cloudflare:workers'
 
 // Só abas do próprio site contam (ao trocar de domínio, adicionar aqui e no site/_headers)
-const ORIGENS = ['https://placar.zenithonacademy.com.br', 'https://placar-da-verdade.zenithon.workers.dev']
+const ORIGENS = ['https://placardaverdade.com.br', 'https://www.placardaverdade.com.br', 'https://placar.zenithonacademy.com.br', 'https://placar-da-verdade.zenithon.workers.dev']
 // Contra quem abre milhares de conexões para inflar o número ou derrubar o contador.
 // Alto por IP porque operadora de celular põe muita gente atrás do mesmo IP (CGNAT).
 const POR_IP = 50, TOTAL = 30000

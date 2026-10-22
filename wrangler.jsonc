@@ -2,7 +2,12 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "placar-da-verdade",
   "main": "worker.js",
-  "routes": [{ "pattern": "placar.zenithonacademy.com.br", "custom_domain": true }],
+  "routes": [
+    { "pattern": "placardaverdade.com.br", "custom_domain": true },
+    { "pattern": "www.placardaverdade.com.br", "custom_domain": true },
+    // domínio antigo: um Redirect Rule da zona zenithonacademy.com.br manda tudo para placardaverdade.com.br
+    { "pattern": "placar.zenithonacademy.com.br", "custom_domain": true }
+  ],
   "compatibility_date": "2026-10-12",
   "observability": {
     "enabled": true

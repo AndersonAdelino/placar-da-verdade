@@ -3,7 +3,7 @@
 Robô que checa, **ao vivo**, os fatos ditos pelos candidatos em um debate político e mostra o placar
 num site, fato por fato, sempre com a fonte ao lado.
 
-**No ar:** https://placar.zenithonacademy.com.br · **Como ele decide:** [metodologia](https://placar.zenithonacademy.com.br/metodologia.html)
+**No ar:** https://placardaverdade.com.br · **Como ele decide:** [metodologia](https://placardaverdade.com.br/metodologia.html)
 
 ![Placar do debate de 18/10/2026](docs/placar.png)
 
