@@ -370,21 +370,6 @@
   .aviso-erro:empty { display: none; }
   .aviso-janela .p-botao { margin-top: 6px; }
   .aviso-janela .p-botao:disabled { opacity: .6; cursor: wait; }
-  /* Reações ao vivo */
-  .reagir { position: fixed; right: 16px; bottom: 16px; z-index: 6; display: flex; gap: 2px; background: var(--tela); border: 1px solid var(--borda); border-radius: 999px; padding: 4px; box-shadow: 0 4px 16px rgb(0 0 0 / .18); }
-  .reagir button { border: 0; background: none; font-size: 1.45rem; line-height: 1; width: 2.5rem; height: 2.5rem; border-radius: 50%; cursor: pointer; transition: transform .12s, background .12s; }
-  .reagir button:hover { background: var(--fundo); transform: translateY(-2px) scale(1.12); }
-  .reagir button:active { transform: scale(.88); }
-  .reagir button:focus-visible { outline: 3px solid var(--tinta); outline-offset: 1px; }
-  .chuva { position: fixed; right: 16px; bottom: 64px; width: 13rem; height: 0; z-index: 6; pointer-events: none; }
-  .chuva span { position: absolute; bottom: 0; font-size: 1.8rem; animation: sobe-emoji 2.6s ease-out forwards; }
-  @keyframes sobe-emoji { 0% { transform: translate(0, 0) scale(.5); opacity: 0; } 12% { transform: translate(0, -12px) scale(1.15); opacity: 1; } 100% { transform: translate(var(--x), -42vh) scale(1); opacity: 0; } }
-  .reagindo .novos { bottom: 76px; }
-  .reagindo .pagina { padding-bottom: 84px; }
-  @media (max-width: 600px) {
-    .reagir { right: 50%; transform: translateX(50%); }
-    .chuva { right: 50%; transform: translateX(50%); }
-  }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
@@ -503,8 +488,6 @@
     <div class="propostas-cols" id="lista-propostas"></div>
   </section>
   <button class="novos" id="novos" type="button" hidden></button>
-  <div class="chuva" id="chuva" aria-hidden="true"></div>
-  <div class="reagir" id="reagir" role="group" aria-label="Reagir ao debate" hidden></div>
   <dialog class="partilha aviso-janela" id="aviso-janela" aria-labelledby="aviso-titulo">
     <div class="p-topo"><h2 id="aviso-titulo">Achou erro nesta checagem?</h2><button class="p-fechar" id="aviso-fechar" type="button" aria-label="Fechar">✕</button></div>
     <p class="p-resumo" id="aviso-fala"></p>

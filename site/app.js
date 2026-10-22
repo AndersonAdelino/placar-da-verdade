@@ -50,7 +50,6 @@ function desenhar() {
   desenharFatos(d)
   desenharLinha(d)
   desenharRevisao(d)
-  atualizarReagir()
 
   // Propostas ou ataques?
   const TOM = [['proposta', 'propondo'], ['ataque', 'atacando'], ['defesa', 'se defendendo'], ['balanco', 'falando do passado']]
@@ -563,11 +562,9 @@ for (const b of document.querySelectorAll('.pix-copiar')) b.onclick = async () =
 function audiencia(espera = 2000, primeira = true) {
   if (LOCAL || OVERLAY) return // overlay fica aberto horas no OBS do streamer: não conta como pessoa assistindo
   // ?nova só na primeira conexão da página: reconexão não conta como visita
-  const ws = wsAtual = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ao-vivo${primeira ? '?nova' : ''}`)
+  const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ao-vivo${primeira ? '?nova' : ''}`)
   ws.onmessage = e => {
     let d; try { d = JSON.parse(e.data) } catch { return }
-    if (!!d.reacoes !== reacoesLigadas) reacoesLigadas = !!d.reacoes, atualizarReagir()
-    if (Array.isArray(d.r)) { chover(d.r.map((n, i) => Math.max(0, (+n || 0) - meus[i]))); meus = [0, 0, 0, 0, 0] }
     const n = +d.agora || 0, v = +d.visitas || 0
     $('audiencia').hidden = false
     $('audiencia').innerHTML = `<b>${n.toLocaleString('pt-BR')}</b> ${n === 1 ? 'pessoa assistindo' : 'pessoas assistindo'} agora` +
@@ -575,33 +572,4 @@ function audiencia(espera = 2000, primeira = true) {
   }
   ws.onclose = () => setTimeout(() => audiencia(Math.min(espera * 2, 60000), false), espera + Math.random() * 1000)
 }
-// ---------- Reações ao vivo: emoji que sobem na tela de todo mundo, como palmas numa plateia ----------
-// Só aparecem durante o debate ao vivo e quando o servidor anuncia (dá para desligar lá sem mexer aqui).
-// Cliques viram um lote por segundo; a volta do servidor traz a soma de todos (menos as minhas, que já subiram na hora)
-const EMOJIS = ['👏', '😂', '😮', '🤔', '🤦'], NOMES = ['Palmas', 'Risada', 'Surpresa', 'Pensativo', 'Vergonha alheia']
-let wsAtual = null, reacoesLigadas = false, fila = [0, 0, 0, 0, 0], meus = [0, 0, 0, 0, 0]
-$('reagir').innerHTML = EMOJIS.map((e, i) => `<button type="button" data-r="${i}" aria-label="${NOMES[i]}" title="${NOMES[i]}">${e}</button>`).join('')
-function atualizarReagir() {
-  const ligado = reacoesLigadas && !!dados && !dados.encerrado && !ARQUIVO && !STORY && !OVERLAY
-  $('reagir').hidden = !ligado; document.body.classList.toggle('reagindo', ligado)
-}
-const parado = matchMedia('(prefers-reduced-motion: reduce)')
-function flutuar(e) {
-  if (parado.matches || document.hidden || $('chuva').childElementCount > 40) return
-  const s = document.createElement('span')
-  s.textContent = e; s.style.left = `${Math.random() * 70}%`; s.style.setProperty('--x', `${Math.round(Math.random() * 80 - 40)}px`)
-  s.onanimationend = () => s.remove()
-  $('chuva').append(s)
-}
-function chover(c) { c.forEach((n, i) => { for (let k = 0; k < Math.min(n, 8); k++) setTimeout(() => flutuar(EMOJIS[i]), Math.random() * 1400) }) }
-$('reagir').onclick = e => {
-  const b = e.target.closest('[data-r]')
-  if (!b || fila[+b.dataset.r] >= 5) return
-  fila[+b.dataset.r]++; flutuar(EMOJIS[+b.dataset.r])
-}
-setInterval(() => {
-  if (!fila.some(Boolean) || wsAtual?.readyState !== 1) return
-  wsAtual.send(JSON.stringify({ r: fila })); fila.forEach((n, i) => meus[i] += n); fila = [0, 0, 0, 0, 0]
-}, 1000)
-
 audiencia()

@@ -1,7 +1,7 @@
 // Contador de quem está com o site aberto agora. Cada aba abre um WebSocket em /ao-vivo;
 // um único Durable Object guarda as conexões (hibernando, sem custo parado) e a cada 5s
-// manda o total para todo mundo. Pelo mesmo canal chegam as reações (emoji), somadas e devolvidas a cada 1,5s.
-// /contestar recebe o "Achou erro nesta checagem?". O resto do site são arquivos estáticos que nem passam por aqui.
+// manda o total para todo mundo. /contestar recebe o "Achou erro nesta checagem?".
+// O resto do site são arquivos estáticos que nem passam por aqui.
 import { DurableObject } from 'cloudflare:workers'
 
 // Só abas do próprio site contam (ao trocar de domínio, adicionar aqui e no site/_headers)
@@ -9,13 +9,9 @@ const ORIGENS = ['https://placardaverdade.com.br', 'https://www.placardaverdade.
 // Contra quem abre milhares de conexões para inflar o número ou derrubar o contador.
 // Alto por IP porque operadora de celular põe muita gente atrás do mesmo IP (CGNAT).
 const POR_IP = 50, TOTAL = 30000
-// Desligar as reações: false + npm run deploy (o site esconde os botões quando o servidor não as anuncia)
-const REACOES = true, EMOJIS = 5
 
 export class Contador extends DurableObject {
   recentes = new Map() // ip → última visita contada (só em memória: se o objeto dormir, zera, e tudo bem)
-  // ponytail: reações somadas só em memória; se o objeto hibernar entre uma reação e o envio, aquele lote se perde (é só emoji)
-  soma = new Array(EMOJIS).fill(0)
   async fetch(req) {
     const ip = req.headers.get('CF-Connecting-IP') ?? '?'
     if (this.ctx.getWebSockets(ip).length >= POR_IP || this.ctx.getWebSockets().length >= TOTAL)
@@ -32,29 +28,16 @@ export class Contador extends DurableObject {
     await this.agendar()
     return new Response(null, { status: 101, webSocket: cliente })
   }
-  // Reação: a aba manda no máximo 1 lote por segundo, ex. [0,2,0,0,1] (quantas de cada emoji)
-  async webSocketMessage(ws, msg) {
-    if (!REACOES) return
-    const agora = Date.now(), ultimo = ws.deserializeAttachment() ?? 0
-    if (agora - ultimo < 800) return // mais rápido que isso é robô: ignora
-    ws.serializeAttachment(agora)
-    let r; try { r = JSON.parse(msg).r } catch { return }
-    if (!Array.isArray(r) || r.length !== EMOJIS) return
-    for (let i = 0; i < EMOJIS; i++) this.soma[i] += Math.min(5, Math.max(0, Math.floor(+r[i] || 0)))
-    await this.agendar(1500)
-  }
+  async webSocketMessage(ws) { ws.close(1003, 'Este canal só envia') } // ninguém precisa mandar nada
   async webSocketClose() { await this.agendar() }
   async webSocketError() { await this.agendar() }
   // Junta entradas e saídas numa transmissão só, a cada 5s (senão 10 mil entradas = 10 mil × 10 mil mensagens)
-  async agendar(ms = 5000) {
-    const atual = await this.ctx.storage.getAlarm()
-    if (!atual || atual > Date.now() + ms) await this.ctx.storage.setAlarm(Date.now() + ms)
+  async agendar() {
+    if (!(await this.ctx.storage.getAlarm())) await this.ctx.storage.setAlarm(Date.now() + 5000)
   }
   async alarm() {
     const conexoes = this.ctx.getWebSockets()
-    const r = this.soma.some(Boolean) ? this.soma : undefined
-    this.soma = new Array(EMOJIS).fill(0)
-    const msg = JSON.stringify({ agora: conexoes.length, visitas: (await this.ctx.storage.get('visitas')) ?? 0, reacoes: REACOES, r })
+    const msg = JSON.stringify({ agora: conexoes.length, visitas: (await this.ctx.storage.get('visitas')) ?? 0 })
     // ponytail: um objeto só aguenta dezenas de milhares de conexões; acima disso, dividir em vários e somar
     for (const ws of conexoes) try { ws.send(msg) } catch {}
   }
