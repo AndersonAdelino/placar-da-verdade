@@ -358,6 +358,33 @@
     .topo, .meio { grid-template-columns: minmax(0, 1fr); }
     .tom-cands, .propostas-cols { grid-template-columns: minmax(0, 1fr); }
   }
+  /* Achou erro? */
+  .contestar { display: block; margin-top: 6px; }
+  .aviso-janela form { display: grid; gap: 6px; }
+  .aviso-janela label { font-weight: 800; font-size: .9rem; margin-top: 6px; }
+  .aviso-janela label span { font-weight: 400; color: var(--apagado); }
+  .aviso-janela textarea, .aviso-janela input { width: 100%; font: inherit; padding: .6em .7em; border: 1px solid var(--borda); border-radius: 8px; background: #fff; color: var(--tinta); }
+  .aviso-janela textarea:focus-visible, .aviso-janela input:focus-visible { outline: 3px solid var(--tinta); outline-offset: 1px; }
+  .aviso-janela .mel { position: absolute; left: -9999px; width: 1px; height: 1px; }
+  .aviso-erro { margin: 0; color: var(--falso); font-size: .9rem; font-weight: 700; }
+  .aviso-erro:empty { display: none; }
+  .aviso-janela .p-botao { margin-top: 6px; }
+  .aviso-janela .p-botao:disabled { opacity: .6; cursor: wait; }
+  /* Reações ao vivo */
+  .reagir { position: fixed; right: 16px; bottom: 16px; z-index: 6; display: flex; gap: 2px; background: var(--tela); border: 1px solid var(--borda); border-radius: 999px; padding: 4px; box-shadow: 0 4px 16px rgb(0 0 0 / .18); }
+  .reagir button { border: 0; background: none; font-size: 1.45rem; line-height: 1; width: 2.5rem; height: 2.5rem; border-radius: 50%; cursor: pointer; transition: transform .12s, background .12s; }
+  .reagir button:hover { background: var(--fundo); transform: translateY(-2px) scale(1.12); }
+  .reagir button:active { transform: scale(.88); }
+  .reagir button:focus-visible { outline: 3px solid var(--tinta); outline-offset: 1px; }
+  .chuva { position: fixed; right: 16px; bottom: 64px; width: 13rem; height: 0; z-index: 6; pointer-events: none; }
+  .chuva span { position: absolute; bottom: 0; font-size: 1.8rem; animation: sobe-emoji 2.6s ease-out forwards; }
+  @keyframes sobe-emoji { 0% { transform: translate(0, 0) scale(.5); opacity: 0; } 12% { transform: translate(0, -12px) scale(1.15); opacity: 1; } 100% { transform: translate(var(--x), -42vh) scale(1); opacity: 0; } }
+  .reagindo .novos { bottom: 76px; }
+  .reagindo .pagina { padding-bottom: 84px; }
+  @media (max-width: 600px) {
+    .reagir { right: 50%; transform: translateX(50%); }
+    .chuva { right: 50%; transform: translateX(50%); }
+  }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
@@ -476,6 +503,26 @@
     <div class="propostas-cols" id="lista-propostas"></div>
   </section>
   <button class="novos" id="novos" type="button" hidden></button>
+  <div class="chuva" id="chuva" aria-hidden="true"></div>
+  <div class="reagir" id="reagir" role="group" aria-label="Reagir ao debate" hidden></div>
+  <dialog class="partilha aviso-janela" id="aviso-janela" aria-labelledby="aviso-titulo">
+    <div class="p-topo"><h2 id="aviso-titulo">Achou erro nesta checagem?</h2><button class="p-fechar" id="aviso-fechar" type="button" aria-label="Fechar">✕</button></div>
+    <p class="p-resumo" id="aviso-fala"></p>
+    <form id="aviso-form">
+      <label for="aviso-texto">O que está errado?</label>
+      <textarea id="aviso-texto" name="texto" required minlength="10" maxlength="1000" rows="4" placeholder="Ex.: o dado citado é de outro ano; o candidato falou de outra coisa…"></textarea>
+      <label for="aviso-link">Link de uma fonte <span>(opcional)</span></label>
+      <input id="aviso-link" name="link" type="url" maxlength="500" placeholder="https://">
+      <input class="mel" name="site" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="aviso-erro" id="aviso-erro" role="alert"></p>
+      <button class="p-botao zap" id="aviso-enviar" type="submit">Enviar aviso</button>
+      <p class="p-nota">Cada aviso é lido na revisão depois do debate. Se o veredito mudar, o site mostra a correção. Não guardamos nada sobre quem enviou.</p>
+    </form>
+    <div id="aviso-ok" hidden>
+      <p><strong>Recebido, obrigado!</strong> Vamos conferir na revisão pós-debate.</p>
+      <button class="p-botao" id="aviso-ok-fechar" type="button">Fechar</button>
+    </div>
+  </dialog>
   <dialog class="como" id="como" aria-labelledby="como-titulo">
     <div class="p-topo"><h2 id="como-titulo">Como uma fala vira veredito</h2><button class="p-fechar" id="como-fechar" type="button" aria-label="Fechar">✕</button></div>
     <p class="como-sub">Acompanhe uma fala de verdade do debate de 18/10 passando por cada etapa.</p>
