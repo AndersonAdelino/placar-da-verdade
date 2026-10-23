@@ -201,7 +201,7 @@ $('faixa').addEventListener('click', e => {
 // ---------- Compartilhar: janela com a prévia da imagem e os atalhos (serve para um fato ou para o resumo do debate) ----------
 const urlDoFato = id => `${location.origin}${location.pathname}${location.search}#fato-${id}`
 const imagens = new Map() // chave → Blob da imagem já gerada (abrir de novo é instantâneo)
-let aberto = null // { chave, titulo, selo, frase, url, zap, x, curto, alt, gerar }
+let aberto = null // { chave, titulo, selo, frase, url, zap, x, alt, gerar }
 async function abrirJanela(o) {
   aberto = o
   $('p-titulo').textContent = o.titulo
@@ -224,7 +224,7 @@ function abrirPartilha(x) {
   const nome = dados.candidatos[x.quem].nome, v = vered(x.veredito)
   abrirJanela({ chave: x.id, titulo: 'Compartilhar este fato', selo: v, frase: `${nome}: “${x.afirmacao}”`, url: urlDoFato(x.id),
     zap: `${nome} disse: "${x.afirmacao}" → ${ROTULO[v]}.${x.motivo ? ` ${x.motivo}` : ''}\n\nVeja a fonte:`,
-    x: `${nome} disse: "${x.afirmacao.slice(0, 150)}" → ${ROTULO[v]}`, curto: `${nome}: "${x.afirmacao}" → ${ROTULO[v]}`,
+    x: `${nome} disse: "${x.afirmacao.slice(0, 150)}" → ${ROTULO[v]}`,
     nota: 'A imagem é do tamanho de Stories e Status. O link leva direto a este fato, com a fonte.', alt: `Card do fato: ${nome}, ${ROTULO[v]}`, gerar: () => cardDoFato(x, nome) })
 }
 // Resumo do debate em 5 números (imagem de Stories), pronto para postar no fim do debate
@@ -233,7 +233,7 @@ function abrirResumo() {
   const linha = `Índice de erro: ${A.nome} ${e(A)} x ${B.nome} ${e(B)}. Propostas: ${A.propostas ?? 0} x ${B.propostas ?? 0}. Ataques: ${A.ataques ?? 0} x ${B.ataques ?? 0}.`
   abrirJanela({ chave: 'resumo-' + dados.atualizado, titulo: 'Compartilhar o resumo do debate', selo: null, frase: linha,
     url: `${location.origin}${location.pathname}${location.search}`, zap: `O debate em 5 números (checagem por IA, com fonte em cada fato):\n${linha}\n\nVeja fato por fato:`,
-    x: `O debate em 5 números: ${linha}`, curto: `O debate em 5 números: ${linha}`, nota: 'A imagem é do tamanho de Stories e Status. O link abre o placar com todos os fatos e as fontes.', alt: 'Resumo do debate em 5 números', gerar: () => cardResumo(dados) })
+    x: `O debate em 5 números: ${linha}`, nota: 'A imagem é do tamanho de Stories e Status. O link abre o placar com todos os fatos e as fontes.', alt: 'Resumo do debate em 5 números', gerar: () => cardResumo(dados) })
 }
 $('resumo-botao').onclick = () => dados && abrirResumo()
 const arquivoAberto = () => new File([imagens.get(aberto.chave)], 'placar-da-verdade.png', { type: 'image/png' })
@@ -248,11 +248,16 @@ $('p-baixar').onclick = async () => {
   setTimeout(() => URL.revokeObjectURL(l.href), 5000)
 }
 $('p-mais').onclick = async () => { // menu nativo do celular (Instagram, Telegram...), com a imagem quando o aparelho aceita
-  const o = aberto, compartilhar = { title: 'Placar da Verdade', text: o.curto, url: o.url }
+  const o = aberto, compartilhar = { title: 'Placar da Verdade', text: `${o.zap}
+
+${o.url}` } // link dentro do texto: com imagem, o WhatsApp descarta o campo url
   try {
     if (imagens.has(o.chave) && navigator.canShare?.({ files: [arquivoAberto()] })) await navigator.share({ ...compartilhar, files: [arquivoAberto()] })
     else await navigator.share(compartilhar)
   } catch {} // cancelar o menu não é erro
+}
+if (navigator.share && matchMedia('(pointer: coarse)').matches) { // no celular, o menu do aparelho manda imagem + texto de uma vez: vira o botão principal
+  $('p-mais').textContent = 'Enviar com a imagem'; $('p-mais').classList.add('zap'); $('p-zap').classList.remove('zap'); $('p-zap').before($('p-mais'))
 }
 $('p-fechar').onclick = () => $('partilha').close()
 $('partilha').addEventListener('click', e => { if (e.target === $('partilha')) $('partilha').close() }) // clique fora fecha
@@ -344,7 +349,8 @@ async function cardResumo(d) {
   })
   const total = (d.fatos ?? []).reduce((n, f) => n + f.declaracoes.length, 0)
   g.fillStyle = '#5e625f'; fonte(400, 40); g.textAlign = 'center'
-  g.fillText(`${total} afirmações checadas, cada uma com a fonte`, W / 2, H - 280)
+  g.fillText(`${total} afirmações checadas, cada uma com a fonte`, W / 2, H - 300)
+  g.fillStyle = '#1b1d1c'; fonte(800, 44); g.fillText('Confere o placar, fato por fato:', W / 2, H - 240)
   g.fillStyle = '#1b1d1c'; fonte(900, 64, true); g.fillText(location.host, W / 2, H - 170)
   g.fillStyle = '#5e625f'; fonte(400, 34); g.fillText('Checagem automática por IA. Confira a fonte.', W / 2, H - 110)
   return new Promise(ok => cv.toBlob(ok, 'image/png'))
@@ -362,7 +368,10 @@ async function cardDoFato(x, nome) {
     if (ls.length && g.measureText(tenta).width <= larg) ls[ls.length - 1] = tenta; else ls.push(p)
     return ls
   }, [])
-  const escrever = (texto, y, px, alt, max) => { const ls = quebrar(texto, W - 2 * M).slice(0, max); ls.forEach((l, i) => g.fillText(l, M, y + i * px * alt)); return y + ls.length * px * alt }
+  const escrever = (texto, y, px, alt, max) => {
+    const todas = quebrar(texto, W - 2 * M), ls = todas.slice(0, max)
+    if (todas.length > max) ls[max - 1] = ls[max - 1].replace(/\s*\S*$/, '…') // cortou: reticências no lugar da última palavra
+    ls.forEach((l, i) => g.fillText(l, M, y + i * px * alt)); return y + ls.length * px * alt }
   g.fillStyle = '#e4e6e3'; g.fillRect(0, 0, W, H)
   g.fillStyle = '#fbfbf8'; g.beginPath(); g.roundRect(40, 40, W - 80, H - 80, 36); g.fill()
   g.fillStyle = '#1b1d1c'; fonte(900, 110, true); g.fillText('Placar da Verdade', M, 210)
@@ -375,9 +384,10 @@ async function cardDoFato(x, nome) {
   g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(M + 24, y + 182, W - 2 * M - 48, 8)
   g.fillStyle = v === 'sem_dados' ? '#1b1d1c' : '#fff'; fonte(900, 130, true); g.textAlign = 'center'; g.fillText(ROTULO[v].toUpperCase(), W / 2, y + 140); g.textAlign = 'left'
   y += 290
-  if (x.motivo) { g.fillStyle = '#1b1d1c'; fonte(800, 48); g.fillText('Os dados:', M, y); fonte(400, 46); y = escrever(x.motivo, y + 64, 46, 1.35, 7) }
+  if (x.motivo) { g.fillStyle = '#1b1d1c'; fonte(800, 48); g.fillText('Os dados:', M, y); fonte(400, 46); y = escrever(x.motivo, y + 64, 46, 1.35, Math.max(2, Math.floor((H - 360 - y - 64) / 62))) } // para antes do rodapé
   if (x.fonte) { g.fillStyle = '#5e625f'; fonte(400, 36); escrever(`Fonte: ${host(x.fonte.url)}`, y + 30, 36, 1.3, 1) }
-  g.fillStyle = '#1b1d1c'; fonte(900, 64, true); g.textAlign = 'center'; g.fillText(location.host, W / 2, H - 170)
+  g.fillStyle = '#1b1d1c'; g.textAlign = 'center'; fonte(800, 44); g.fillText('Confere o placar, fato por fato:', W / 2, H - 240)
+  fonte(900, 64, true); g.fillText(location.host, W / 2, H - 170)
   g.fillStyle = '#5e625f'; fonte(400, 34); g.fillText('Checagem automática por IA. Confira a fonte.', W / 2, H - 110)
   return new Promise(ok => cv.toBlob(ok, 'image/png'))
 }
