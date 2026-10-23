@@ -229,6 +229,8 @@
   .prop h4 { margin: 0; font-size: 1.05rem; font-weight: 800; }
   .prop p { margin: 4px 0 0; max-width: 68ch; }
   .prop small { color: var(--apagado); }
+  .caminho { font-size: .9rem; border-top: 1px dashed var(--borda); padding-top: 6px; margin-top: 8px !important; }
+  .caminho.vedada b { color: var(--falso); }
 
   /* Aviso antes do debate, no lugar do vídeo */
   .aviso { height: 100%; display: grid; place-items: center; text-align: center; padding: 24px; color: #fff;
@@ -533,6 +535,7 @@
   <section class="propostas" id="propostas">
     <h2 class="secao">Propostas explicadas</h2>
     <div class="propostas-cols" id="lista-propostas"></div>
+    <p class="vazio">Base: partidos que declararam apoio no 2º turno, com as cadeiras eleitas em 4/10. Apoio declarado não garante voto. <a href="metodologia.html#caminho">Como contamos</a></p>
   </section>
   <button class="novos" id="novos" type="button" hidden></button>
   <dialog class="partilha aviso-janela" id="aviso-janela" aria-labelledby="aviso-titulo">

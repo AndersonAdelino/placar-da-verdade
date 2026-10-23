@@ -56,6 +56,13 @@ const MEDIADOR = 'anthropic/claude-sonnet-5.5' // não ouve: decide pelo texto s
 const VEREDITOS = ['verdadeiro', 'impreciso', 'falso', 'sem_dados']
 // Debates anteriores já revisados (placar-<data>.json no R2): fala repetida reaproveita o veredito, sem nova busca
 const ANTERIORES = ['2026-10-18']
+// Base no Congresso eleito em 4/10 (posse em 2027): partidos que declararam apoio no 2º turno. Neutros, divididos e sem apoio
+// (PSD, MDB, PSDB/Cidadania, PRD/Solidariedade, Avante, Missão; no Senado, MDB, PSD, PSDB e 1 sem partido) não entram.
+// Fontes: Agência Senado 05/10 (Câmara), TV Senado 10/2026 (Senado), O Povo 14/10 (apoios). O site compara com o quórum
+const BASE = {
+  'Lula': { deputados: 124, senadores: 15, partidos: 'PT, PCdoB, PV, PSB, PSOL, Rede e PDT' },
+  'Flávio Bolsonaro': { deputados: 286, senadores: 50, partidos: 'PL, União, PP, Republicanos, Podemos e Novo' },
+}
 const WHISPER_LIXO = /amara\.org|legendas? (pela|por)|inscreva-se|obrigad[oa] por assistir/i
 
 // ---------- Vídeo e relógio ----------
@@ -83,7 +90,7 @@ const placar = {
   pausado: false, // true quando o teto de gasto acaba com a checagem
 }
 function zerado(nome) {
-  return { nome, verdadeiro: 0, impreciso: 0, falso: 0, sem_dados: 0, propostas: 0, ataques: 0,
+  return { nome, base: BASE[nome], verdadeiro: 0, impreciso: 0, falso: 0, sem_dados: 0, propostas: 0, ataques: 0,
     tempo: { proposta: 0, ataque: 0, defesa: 0, balanco: 0, outro: 0 } } // segundos de fala por tom
 }
 if (arg.continuar && existsSync('tmp/placar.json')) {
@@ -226,6 +233,10 @@ Ignore retórica e frases de efeito ("não sou candidato de primeira viagem"), o
 propostas (máx. 2): o que o candidato diz que VAI FAZER se eleito, de forma concreta. Promessa vaga ("vou cuidar do povo") não conta.
 - titulo: 2 a 6 palavras. Se a mesma proposta já está em PROPOSTAS JÁ DITAS por ele, repita exatamente o título.
 - explicacao: 1 ou 2 frases simples: o que é e como ele diz que vai fazer.
+- caminho: o que a Constituição de 1988 exige para a proposta valer. "executivo" (o presidente faz sozinho: decreto, programa,
+  gestão de órgão ou de verba já prevista), "lei" (lei ordinária ou complementar votada no Congresso), "pec" (só mudando a Constituição),
+  "vedada" (fere cláusula pétrea do art. 60, § 4º, e nem PEC pode: ex. pena de morte, fim do voto secreto, cassar direito individual). Na dúvida, null.
+- porque: 1 frase curta e neutra explicando o caminho; cite o artigo da Constituição só se tiver certeza.
 
 ataques (máx. 3): cada ofensa, acusação ou desqualificação pessoal contra o adversário (crítica a política pública com dados não conta).
 - resumo: 1 frase neutra na 3ª pessoa, sem repetir palavrão (ex.: "chamou o adversário de mentiroso").`
@@ -428,7 +439,8 @@ async function analisar(texto, quem, t, duracao, de, ate) {
       c.propostas++
       marcar(t, 'p' + quem)
       if (ja) ja.vezes++, ja.ultima = t
-      else placar.propostas.push({ quem, titulo: String(p.titulo), explicacao: String(p.explicacao ?? ''), vezes: 1, t })
+      else placar.propostas.push({ quem, titulo: String(p.titulo), explicacao: String(p.explicacao ?? ''), vezes: 1, t,
+        ...(['executivo', 'lei', 'pec', 'vedada'].includes(p.caminho) && { caminho: p.caminho, porque: String(p.porque ?? '') }) })
       console.log(`\n[PROPOSTA] ${nomeDe(quem)}: ${p.titulo}`)
     }
     for (const a of lido.ataques) {

@@ -67,10 +67,22 @@ function desenhar() {
     </div>`
   }).join('')
 
+  // Caminho da proposta: o que a Constituição exige e quantos votos a base de quem propôs tem no Congresso eleito
+  const QUORUM = { lei: [257, 41, 'Precisa de lei: maioria no Congresso'], pec: [308, 49, 'Precisa mudar a Constituição (PEC): 3/5 em dois turnos'] }
+  const caminho = (p, c) => {
+    if (p.caminho === 'executivo') return `<p class="caminho"><b>O presidente faz sozinho</b>, sem votação no Congresso. ${esc(p.porque)}</p>`
+    if (p.caminho === 'vedada') return `<p class="caminho vedada"><b>Não pode:</b> fere cláusula pétrea da Constituição, nem emenda muda. ${esc(p.porque)}</p>`
+    const qu = QUORUM[p.caminho]
+    if (!qu) return ''
+    const b = c.base, falta = b ? [qu[0] - b.deputados, qu[1] - b.senadores] : null
+    return `<p class="caminho"><b>${qu[2]}</b> (${qu[0]} deputados e ${qu[1]} senadores). ${esc(p.porque)}` +
+      (b ? `<br>Base de ${esc(c.nome)}: ${b.deputados} deputados e ${b.senadores} senadores` +
+        (falta[0] > 0 || falta[1] > 0 ? `, faltam ${[falta[0] > 0 && `${falta[0]} deputados`, falta[1] > 0 && `${falta[1]} senadores`].filter(Boolean).join(' e ')}.` : ', o suficiente.') : '') + '</p>'
+  }
   $('lista-propostas').innerHTML = Object.entries(d.candidatos).map(([q, c]) => {
     const minhas = (d.propostas ?? []).filter(p => p.quem === q).sort((x, y) => y.vezes - x.vezes || y.t - x.t)
     return `<div><h3>${esc(c.nome)}</h3>${minhas.length ? `<ol>${minhas.map(p => `<li class="prop">
-      <h4>${esc(p.titulo)}</h4><p>${esc(p.explicacao)}</p>${p.vezes > 1 ? `<small>Citada ${p.vezes} vezes</small>` : ''}</li>`).join('')}</ol>`
+      <h4>${esc(p.titulo)}</h4><p>${esc(p.explicacao)}</p>${caminho(p, c)}${p.vezes > 1 ? `<small>Citada ${p.vezes} vezes</small>` : ''}</li>`).join('')}</ol>`
       : '<p class="vazio">Nenhuma proposta concreta até agora.</p>'}</div>`
   }).join('')
 
