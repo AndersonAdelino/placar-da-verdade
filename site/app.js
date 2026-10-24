@@ -469,7 +469,7 @@ function mostrarVideo(visivel) {
   modoVideo = dados?.encerrado ? 'fim' : dados?.video?.id
   if (dados?.encerrado) { $('video').innerHTML = telaFim(dados); videoPronto = true; return relogio() }
   if (!visivel) { $('video').innerHTML = ''; videoPronto = !!dados; return relogio() }
-  if (!dados?.video?.id) { $('video').innerHTML = dados?.video?.ao_vivo ? OUVINDO : dados?.aviso ? `<div class="aviso">${esc(dados.aviso)}</div>` : ''; return }
+  if (!dados?.video?.id) { $('video').innerHTML = dados?.video?.ao_vivo ? OUVINDO : dados?.aviso ? `<div class="aviso">${esc(dados.aviso)}</div>` : ''; videoPronto = !!dados; return } // pronto: não redesenha o painel a cada atualização
   const inicio = dados.video.ao_vivo ? 0 : Math.round(segundosDeDebate())
   $('video').innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(dados.video.id)}?autoplay=1&mute=1&enablejsapi=1&start=${inicio}"
     title="Transmissão do debate" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`
