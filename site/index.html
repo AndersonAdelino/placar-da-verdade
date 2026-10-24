@@ -247,6 +247,7 @@
   .ondas i:nth-child(2) { animation-delay: -.8s; } .ondas i:nth-child(3) { animation-delay: -.6s; } .ondas i:nth-child(4) { animation-delay: -.4s; } .ondas i:nth-child(5) { animation-delay: -.2s; }
   @keyframes onda { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
   @media (prefers-reduced-motion: reduce) { .ondas i { animation: none; transform: scaleY(.6); } }
+  .recado { margin: 0 0 12px; padding: .7em 1em; border-radius: 10px; background: #ffd54f; color: #1b1d1c; font-weight: 800; text-align: center; }
   /* Entre debates: tela com o próximo debate e contagem regressiva no lugar da live */
   .video:has(.tela-fim) { aspect-ratio: auto; min-height: 16rem; }
   /* Entre debates a tela do próximo debate estica até a altura do Mentirômetro (os dois blocos alinhados) */
@@ -449,6 +450,7 @@
     </div>
   </header>
 
+  <p class="recado" id="recado" role="status" hidden></p>
   <section class="topo" id="topo">
     <div id="com-video">
       <div class="video" id="video"></div>

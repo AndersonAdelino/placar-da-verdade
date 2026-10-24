@@ -635,13 +635,16 @@ status()
 publicar()
 setInterval(publicar, 30_000) // batimento: mantém o "ao vivo" aceso no site mesmo sem fala nova
 
-// Correção do operador sem reiniciar: tmp/ajustes.json = [{ trecho, veredito, motivo, fonte: { url }, afirmacao? }] ou [{ trecho, remover: true }]
+// Correção do operador sem reiniciar: tmp/ajustes.json = [{ trecho, veredito, motivo, fonte: { url }, afirmacao? }], [{ trecho, remover: true }]
+// ou [{ placar: { recado, recarregar } }] (recado no topo do site; recarregar = Date.now() faz as páginas abertas recarregarem)
 // O arquivo é aplicado uma vez e renomeado para tmp/ajustes-<hora>.aplicado.json
 function ajustar() {
   if (!existsSync('tmp/ajustes.json')) return
   let lista
   try { lista = JSON.parse(readFileSync('tmp/ajustes.json', 'utf8')) } catch (e) { return console.error('ajustes.json inválido:', e.message) }
   renameSync('tmp/ajustes.json', `tmp/ajustes-${Date.now()}.aplicado.json`)
+  for (const aj of lista) if (aj.placar) Object.assign(placar, aj.placar), console.log(`
+[AJUSTE] placar: ${JSON.stringify(aj.placar)}`) // ex.: { recado: 'Debate em intervalo' } ou { recado: null }
   for (const aj of lista) for (const f of placar.fatos) f.declaracoes = f.declaracoes.filter(d => {
     if (!aj.trecho || !d.afirmacao.includes(aj.trecho)) return true
     const c = placar.candidatos[d.quem]

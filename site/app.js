@@ -10,7 +10,7 @@ const host = url => { try { return new URL(url).hostname.replace(/^www\./, '') }
 const link = url => /^https?:\/\//i.test(url ?? '') ? esc(url) : '#'
 const vered = v => v in ROTULO ? v : 'sem_dados'
 const MINIMO = 3 // fatos checáveis (sem "sem dados") de cada lado antes de o Mentirômetro apontar alguém
-let dados = null, vistos = new Set(), videoPronto = false, modoVideo = null
+let recarregarVisto, dados = null, vistos = new Set(), videoPronto = false, modoVideo = null
 
 function conta(c) {
   const total = c.verdadeiro + c.impreciso + c.falso
@@ -22,6 +22,9 @@ function conta(c) {
 function desenhar() {
   const d = dados, [A, B] = Object.values(d.candidatos), ca = conta(A), cb = conta(B)
   if (!videoPronto || modoVideo !== (d.encerrado ? 'fim' : d.video?.id)) mostrarVideo(videoVisivel)
+  $('recado').hidden = !d.recado; $('recado').textContent = d.recado ?? '' // recado do operador (ex.: intervalo): muda sem recarregar
+  if (recarregarVisto === undefined) recarregarVisto = d.recarregar ?? 0
+  else if ((d.recarregar ?? 0) !== recarregarVisto) return location.reload() // operador pediu: páginas abertas pegam a versão nova do site
   if ($('falando')) $('falando').textContent = d.candidatos[d.falando] ? `🎙️ Falando agora: ${d.candidatos[d.falando].nome}` : '' // mediador ou ninguém: some
 
   // Mentirômetro: ponteiro para a esquerda = A erra mais, centro = empate, direita = B erra mais.
