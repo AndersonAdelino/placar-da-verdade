@@ -570,7 +570,10 @@ function ouvir() {
         const quem = falantes(arquivo, segmentos)
         const pedaco = AUDIOS.push(arquivo) - 1
         segmentos.forEach((s, i) => receber(s.text, quem[i], s.end - s.start, pedaco))
-        if (quem.length) ultimo = quem.at(-1), status()
+        if (quem.length) {
+          ultimo = quem.at(-1), status()
+          if (arg.entrada && placar.falando !== ultimo) placar.falando = ultimo, publicar() // sem vídeo no site: mostra quem está falando
+        }
       } catch (e) { console.error('\nerro transcrevendo:', e.message) }
       // Guarda ~6 min de áudio para a conferência; apaga o que ficou mais velho
       if (!AUDIOS.includes(arquivo)) rmSync(arquivo, { force: true })

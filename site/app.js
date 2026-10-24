@@ -22,6 +22,7 @@ function conta(c) {
 function desenhar() {
   const d = dados, [A, B] = Object.values(d.candidatos), ca = conta(A), cb = conta(B)
   if (!videoPronto || modoVideo !== (d.encerrado ? 'fim' : d.video?.id)) mostrarVideo(videoVisivel)
+  if ($('falando')) $('falando').textContent = d.candidatos[d.falando] ? `🎙️ Falando agora: ${d.candidatos[d.falando].nome}` : '' // mediador ou ninguém: some
 
   // Mentirômetro: ponteiro para a esquerda = A erra mais, centro = empate, direita = B erra mais.
   // Escala linear: diferença de 100 pontos no índice de erro = ponteiro deitado (90°), 50 pontos = 45°
@@ -515,6 +516,7 @@ function falta(quando) {
 const OUVINDO = `<div class="aviso ouvindo"><div>
   <span class="ondas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
   <strong>O robô está ouvindo o debate</strong>
+  <p class="falando" id="falando" aria-live="polite"></p>
   <p>Os direitos de transmissão são da Globo, então o vídeo não pode passar aqui. Mas cada fala checada aparece logo abaixo, uns 30 segundos depois da TV.</p>
   <a class="assistir" href="https://g1.globo.com/politica/eleicoes/2026/ao-vivo/debate-globo-segundo-turno.ghtml" target="_blank" rel="noopener">Assistir no g1 ↗</a>
 </div></div>`
