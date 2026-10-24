@@ -635,7 +635,7 @@ status()
 publicar()
 setInterval(publicar, 30_000) // batimento: mantém o "ao vivo" aceso no site mesmo sem fala nova
 
-// Correção do operador sem reiniciar: tmp/ajustes.json = [{ trecho, veredito, motivo, fonte: { url } }] ou [{ trecho, remover: true }]
+// Correção do operador sem reiniciar: tmp/ajustes.json = [{ trecho, veredito, motivo, fonte: { url }, afirmacao? }] ou [{ trecho, remover: true }]
 // O arquivo é aplicado uma vez e renomeado para tmp/ajustes-<hora>.aplicado.json
 function ajustar() {
   if (!existsSync('tmp/ajustes.json')) return
@@ -648,7 +648,7 @@ function ajustar() {
     if (VEREDITOS.includes(d.veredito)) c[d.veredito] = Math.max(0, c[d.veredito] - 1)
     if (aj.remover) return console.log(`
 [AJUSTE] removido: ${d.afirmacao}`), false
-    Object.assign(d, { veredito: aj.veredito, motivo: aj.motivo, fonte: aj.fonte })
+    Object.assign(d, { veredito: aj.veredito, motivo: aj.motivo, fonte: aj.fonte }, aj.afirmacao && { afirmacao: aj.afirmacao })
     if (VEREDITOS.includes(d.veredito)) c[d.veredito]++
     console.log(`
 [AJUSTE] ${nomeDe(d.quem)}: ${d.afirmacao} → ${d.veredito}`)
