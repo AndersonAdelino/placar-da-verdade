@@ -13,7 +13,7 @@
 // Vídeo gravado vira simulação: o robô "vive" na data e hora em que o debate passou ao vivo.
 // Teclas: a = automático (voz) · 1 / 2 / 0 = força candidato A / B / mediador
 import { spawn, execFile, execFileSync } from 'node:child_process'
-import { readFileSync, writeFileSync, appendFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, rmSync, existsSync, renameSync } from 'node:fs'
 import { createInterface } from 'node:readline'
 import { parseArgs } from 'node:util'
 import { lerWav, carregarVozes, quemFala, rotular, reforcar } from './voz.mjs'
@@ -634,3 +634,27 @@ if (!temVozes) console.log(`sem vozes cadastradas para ${arg.a} e ${arg.b}: modo
 status()
 publicar()
 setInterval(publicar, 30_000) // batimento: mantém o "ao vivo" aceso no site mesmo sem fala nova
+
+// Correção do operador sem reiniciar: tmp/ajustes.json = [{ trecho, veredito, motivo, fonte: { url } }] ou [{ trecho, remover: true }]
+// O arquivo é aplicado uma vez e renomeado para tmp/ajustes-<hora>.aplicado.json
+function ajustar() {
+  if (!existsSync('tmp/ajustes.json')) return
+  let lista
+  try { lista = JSON.parse(readFileSync('tmp/ajustes.json', 'utf8')) } catch (e) { return console.error('ajustes.json inválido:', e.message) }
+  renameSync('tmp/ajustes.json', `tmp/ajustes-${Date.now()}.aplicado.json`)
+  for (const aj of lista) for (const f of placar.fatos) f.declaracoes = f.declaracoes.filter(d => {
+    if (!aj.trecho || !d.afirmacao.includes(aj.trecho)) return true
+    const c = placar.candidatos[d.quem]
+    if (VEREDITOS.includes(d.veredito)) c[d.veredito] = Math.max(0, c[d.veredito] - 1)
+    if (aj.remover) return console.log(`
+[AJUSTE] removido: ${d.afirmacao}`), false
+    Object.assign(d, { veredito: aj.veredito, motivo: aj.motivo, fonte: aj.fonte })
+    if (VEREDITOS.includes(d.veredito)) c[d.veredito]++
+    console.log(`
+[AJUSTE] ${nomeDe(d.quem)}: ${d.afirmacao} → ${d.veredito}`)
+    return true
+  })
+  placar.fatos = placar.fatos.filter(f => f.declaracoes.length)
+  publicar()
+}
+setInterval(ajustar, 10_000)
