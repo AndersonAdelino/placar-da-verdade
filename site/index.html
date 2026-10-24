@@ -247,6 +247,8 @@
   .ondas i:nth-child(2) { animation-delay: -.8s; } .ondas i:nth-child(3) { animation-delay: -.6s; } .ondas i:nth-child(4) { animation-delay: -.4s; } .ondas i:nth-child(5) { animation-delay: -.2s; }
   @keyframes onda { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
   @media (prefers-reduced-motion: reduce) { .ondas i { animation: none; transform: scaleY(.6); } }
+  .resumao-link { display: block; margin: 0 0 12px; padding: .7em 1em; border-radius: 10px; background: var(--tinta); color: var(--sobre-tinta); text-decoration: none; text-align: center; }
+  .resumao-link:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
   .recado { margin: 0 0 12px; padding: .7em 1em; border-radius: 10px; background: #ffd54f; color: #1b1d1c; font-weight: 800; text-align: center; }
   /* Entre debates: tela com o próximo debate e contagem regressiva no lugar da live */
   .video:has(.tela-fim) { aspect-ratio: auto; min-height: 16rem; }
@@ -450,6 +452,7 @@
     </div>
   </header>
 
+  <a class="resumao-link" href="resumo">📊 <b>Resumão dos 2 debates:</b> quem errou mais, quem propôs e quem atacou →</a>
   <p class="recado" id="recado" role="status" hidden></p>
   <section class="topo" id="topo">
     <div id="com-video">

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resumão dos debates | Placar da Verdade</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script src="tema.js"></script>
+<meta name="description" content="Os dois debates presidenciais do 2º turno em números: Mentirômetro, propostas, ataques, falas falsas e falas repetidas, com fonte em cada checagem.">
+<meta property="og:title" content="Resumão dos 2 debates: Placar da Verdade">
+<meta property="og:description" content="Quem errou mais, quem propôs e quem atacou nos dois debates do 2º turno. Cada checagem tem fonte.">
+<meta property="og:image" content="https://placardaverdade.com.br/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  :root { --fundo: #e4e6e3; --tela: #fbfbf8; --tinta: #1b1d1c; --apagado: #5e625f; --borda: #b9bdb8;
+    --verdadeiro: #1d8a4a; --impreciso: #e07b14; --falso: #c62828; --proposta: #2457a6; --ataque: #b5367a; --sobre-tinta: #fff; color-scheme: light; }
+  :root[data-tema="escuro"] { color-scheme: dark; --fundo: #121413; --tela: #1d201f; --tinta: #e8eae7; --apagado: #a2a7a3; --borda: #3b403d;
+    --verdadeiro: #22985a; --falso: #d93a35; --proposta: #7aa3e8; --ataque: #e07ab0; --sobre-tinta: #121413; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--tinta); font: 400 1rem/1.5 "Archivo", system-ui, sans-serif; }
+  a { color: var(--proposta); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+  .pagina { max-width: 960px; margin: 0 auto; padding: 16px; }
+  .voltar { display: inline-block; margin-bottom: 12px; font-weight: 700; color: var(--tinta); }
+  h1 { margin: 0 0 4px; font-size: clamp(2rem, 7vw, 3.2rem); font-weight: 900; font-stretch: 62%; line-height: 1; }
+  .sub { margin: 0 0 14px; color: var(--apagado); }
+  section { background: var(--tela); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+  h2 { margin: 0 0 10px; font-size: 1.6rem; font-weight: 900; font-stretch: 62%; line-height: 1.1; }
+  .filtro { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; position: sticky; top: 0; z-index: 2; padding: 8px 0; background: var(--fundo); }
+  .filtro button { border: 1px solid var(--borda); background: var(--tela); color: var(--tinta); border-radius: 999px; padding: .45em 1em; font: inherit; font-weight: 800; cursor: pointer; }
+  .filtro button[aria-pressed="true"] { background: var(--tinta); color: var(--sobre-tinta); border-color: var(--tinta); }
+  .dois { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .dois { grid-template-columns: 1fr; } }
+  .medidor { text-align: center; }
+  .medidor svg { width: min(320px, 100%); height: auto; display: block; margin: 0 auto; }
+  .ponteiro { transition: transform .6s ease; transform-origin: 160px 160px; }
+  @media (prefers-reduced-motion: reduce) { .ponteiro { transition: none; } }
+  .veredito-texto { font-size: 1.6rem; font-weight: 900; font-stretch: 62%; margin: 4px 0 0; }
+  .veredito-texto small { display: block; font-size: .85rem; font-weight: 400; font-stretch: 100%; color: var(--apagado); }
+  .cand h3 { margin: 0; font-size: 1.3rem; font-weight: 900; font-stretch: 75%; }
+  .pct { font-size: 2.6rem; font-weight: 900; font-stretch: 62%; color: var(--falso); line-height: 1; }
+  .pct small { font-size: 1rem; }
+  .barra { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 8px 0 6px; background: var(--fundo); }
+  .barra span { display: block; }
+  .v { background: var(--verdadeiro); } .i { background: var(--impreciso); } .f { background: var(--falso); }
+  .contagem { font-size: .9rem; color: var(--apagado); }
+  .numeros { display: flex; gap: 22px; margin: 6px 0 8px; }
+  .numeros b { display: block; font-size: 2.4rem; font-weight: 900; font-stretch: 62%; line-height: 1; }
+  .numeros .p b { color: var(--proposta); } .numeros .a b { color: var(--ataque); }
+  .tom { display: flex; height: 12px; border-radius: 6px; overflow: hidden; }
+  .tom .p { background: var(--proposta); } .tom .a { background: var(--ataque); }
+  ul.falas { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ul.falas li { border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; }
+  .tecla { display: inline-block; padding: .05em .55em; border-radius: 6px; font-weight: 800; font-stretch: 75%; font-size: .8rem; color: #fff; margin-right: 6px; }
+  .tecla.sem_dados { background: #fff; color: #1b1d1c; border: 1px solid var(--borda); }
+  .data { font-size: .8rem; color: var(--apagado); }
+  .falas p { margin: 4px 0 0; }
+  .falas .motivo { font-size: .9rem; color: var(--apagado); }
+  .vazio { color: var(--apagado); }
+  .partilha-botoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .partilha-botoes a, .partilha-botoes button { border: 1px solid var(--borda); background: var(--tela); color: var(--tinta); border-radius: 10px; padding: .7em 1em; font: inherit; font-weight: 800; cursor: pointer; text-decoration: none; }
+  .partilha-botoes .zap { background: #1d8a4a; color: #fff; border-color: #1d8a4a; }
+  .nota { font-size: .85rem; color: var(--apagado); }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <a class="voltar" href="./">← Voltar ao placar</a>
+  <h1>Resumão dos 2 debates</h1>
+  <p class="sub">Os dois debates do 2º turno entre Lula e Flávio Bolsonaro (18/10, na Band, e 23/10, na Globo), em números. Os dados são os revisados depois de cada debate, e cada checagem tem a fonte.</p>
+
+  <div class="filtro" role="group" aria-label="Escolha o debate">
+    <button type="button" data-debate="todos" aria-pressed="true">Os 2 debates</button>
+    <button type="button" data-debate="2026-10-18" aria-pressed="false">18/10 · Band</button>
+    <button type="button" data-debate="2026-10-23" aria-pressed="false">23/10 · Globo</button>
+  </div>
+
+  <section>
+    <h2>Mentirômetro</h2>
+    <div class="medidor" id="medidor"><p class="vazio">Carregando…</p></div>
+    <div class="dois" id="cands"></div>
+    <p class="nota">Índice de erro: falso vale 1, impreciso vale meio, sobre o total de falas checáveis ("sem dados" fica de fora).</p>
+  </section>
+
+  <section>
+    <h2>Propostas ou ataques?</h2>
+    <div class="dois" id="tom"></div>
+  </section>
+
+  <section>
+    <h2>Falas falsas</h2>
+    <p class="nota">Toque numa fala para ver a checagem completa, com a fonte.</p>
+    <div class="dois" id="falsos"></div>
+  </section>
+
+  <section>
+    <h2>Repetiu no segundo debate</h2>
+    <p class="nota">Falas do debate de 23/10 que já tinham sido ditas e checadas em 18/10.</p>
+    <ul class="falas" id="repetidas"></ul>
+  </section>
+
+  <section>
+    <h2>Compartilhe o resumão</h2>
+    <p>Manda pro grupo da família ou do trabalho 👇</p>
+    <div class="partilha-botoes">
+      <a class="zap" id="r-zap" target="_blank" rel="noopener">WhatsApp</a>
+      <button type="button" id="r-imagem">Baixar imagem para Stories</button>
+      <button type="button" id="r-mais" hidden>Mais opções…</button>
+    </div>
+  </section>
+
+  <p class="nota">Checagem automática por inteligência artificial, com conferência humana depois de cada debate. Pode errar: confira a fonte. As mesmas regras valem para os dois candidatos. <a href="metodologia">Como checamos</a>.</p>
+</div>
+<script src="resumo.js"></script>
+</body>
+</html>
