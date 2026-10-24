@@ -235,6 +235,16 @@
   /* Aviso antes do debate, no lugar do vídeo */
   .aviso { height: 100%; display: grid; place-items: center; text-align: center; padding: 24px; color: #fff;
     font-size: clamp(1.4rem, 4vw, 2.4rem); font-weight: 900; font-stretch: 62%; line-height: 1.1; }
+  .video:has(.ouvindo) { aspect-ratio: auto; }
+  .ouvindo { padding: 20px 16px; }
+  .ouvindo strong { display: block; margin: 14px 0 10px; text-transform: uppercase; }
+  .ouvindo p { margin: 0 auto 16px; max-width: 34em; font-size: clamp(.85rem, 2.4vw, 1.05rem); font-weight: 400; font-stretch: 100%; line-height: 1.4; opacity: .85; }
+  .ouvindo .assistir { display: inline-block; background: #fff; color: #1b1d1c; border-radius: 999px; padding: .55em 1.2em; font-size: clamp(.9rem, 2.6vw, 1.1rem); font-stretch: 100%; text-decoration: none; }
+  .ondas { display: inline-flex; gap: 6px; align-items: center; height: 2.2rem; }
+  .ondas i { width: 7px; height: 100%; border-radius: 4px; background: #e53935; animation: onda 1s ease-in-out infinite; }
+  .ondas i:nth-child(2) { animation-delay: -.8s; } .ondas i:nth-child(3) { animation-delay: -.6s; } .ondas i:nth-child(4) { animation-delay: -.4s; } .ondas i:nth-child(5) { animation-delay: -.2s; }
+  @keyframes onda { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
+  @media (prefers-reduced-motion: reduce) { .ondas i { animation: none; transform: scaleY(.6); } }
   /* Entre debates: tela com o próximo debate e contagem regressiva no lugar da live */
   .video:has(.tela-fim) { aspect-ratio: auto; min-height: 16rem; }
   /* Entre debates a tela do próximo debate estica até a altura do Mentirômetro (os dois blocos alinhados) */

@@ -468,7 +468,7 @@ function mostrarVideo(visivel) {
   modoVideo = dados?.encerrado ? 'fim' : dados?.video?.id
   if (dados?.encerrado) { $('video').innerHTML = telaFim(dados); videoPronto = true; return relogio() }
   if (!visivel) { $('video').innerHTML = ''; videoPronto = !!dados; return relogio() }
-  if (!dados?.video?.id) { $('video').innerHTML = dados?.aviso ? `<div class="aviso">${esc(dados.aviso)}</div>` : ''; return }
+  if (!dados?.video?.id) { $('video').innerHTML = dados?.video?.ao_vivo ? OUVINDO : dados?.aviso ? `<div class="aviso">${esc(dados.aviso)}</div>` : ''; return }
   const inicio = dados.video.ao_vivo ? 0 : Math.round(segundosDeDebate())
   $('video').innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(dados.video.id)}?autoplay=1&mute=1&enablejsapi=1&start=${inicio}"
     title="Transmissão do debate" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`
@@ -510,6 +510,14 @@ function falta(quando) {
   const d = Math.floor(s / 86400), dois = n => String(n).padStart(2, '0')
   return `${d ? d + (d === 1 ? ' dia ' : ' dias ') : ''}${dois(Math.floor(s % 86400 / 3600))}h ${dois(Math.floor(s % 3600 / 60))}min ${dois(s % 60)}s`
 }
+// Debate fora do YouTube (robô com --entrada): sem vídeo, mostra que o robô está ouvindo e leva ao g1
+// ponytail: link fixo do debate da Globo de 23/10; para outro debate, trocar aqui (ou mandar no placar.json)
+const OUVINDO = `<div class="aviso ouvindo"><div>
+  <span class="ondas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+  <strong>O robô está ouvindo o debate</strong>
+  <p>Os direitos de transmissão são da Globo, então o vídeo não pode passar aqui. Mas cada fala checada aparece logo abaixo, uns 30 segundos depois da TV.</p>
+  <a class="assistir" href="https://g1.globo.com/politica/eleicoes/2026/ao-vivo/debate-globo-segundo-turno.ghtml" target="_blank" rel="noopener">Assistir no g1 ↗</a>
+</div></div>`
 const telaFim = d => `<div class="aviso tela-fim"><div>
   <small>Debate de ${new Date(d.video?.data ?? d.atualizado).toLocaleDateString('pt-BR', { day: 'numeric', month: 'numeric', timeZone: 'America/Sao_Paulo' })} encerrado · o placar final está logo abaixo</small>
   <span class="rotulo-fim">Próximo debate</span>
