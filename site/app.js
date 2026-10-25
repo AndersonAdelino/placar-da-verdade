@@ -142,7 +142,7 @@ function desenharFatos(d) {
         ${x.ja_checado ? `<p class="corrigido">Repetiu o que disse em outro debate (“${esc(x.ja_checado.afirmacao)}”): o veredito foi reaproveitado da checagem anterior.</p>` : ''}
         ${x.literal ? `<p class="literal">Frase dita: “${esc(x.literal)}”</p>` : ''}
         ${x.contexto ? `<p class="ctx">${esc(x.contexto)}</p>` : ''}
-        ${x.corrigido ? `<p class="corrigido">Revisado após o debate · ao vivo era <b>${ROTULO[vered(x.corrigido.antes)]}</b>${x.corrigido.afirmacao_antes ? ` (o robô tinha entendido: “${esc(x.corrigido.afirmacao_antes)}”)` : ''}</p>` : ''}
+        ${x.corrigido ? `<p class="corrigido">${x.corrigido.ao_vivo ? 'Corrigido durante o debate por conferência humana · o robô tinha dado' : 'Revisado após o debate · ao vivo era'} <b>${ROTULO[vered(x.corrigido.antes)]}</b>${x.corrigido.afirmacao_antes ? ` (o robô tinha entendido: “${esc(x.corrigido.afirmacao_antes)}”)` : ''}</p>` : ''}
         <div class="fonte">${x.fonte ? `Fonte: <a href="${link(x.fonte.url)}" target="_blank" rel="noopener">${esc(x.fonte.titulo)}</a> (${esc(host(x.fonte.url))})` : 'Nenhuma fonte encontrada.'}</div>
         <button class="botao-texto contestar" type="button" data-id="${x.id}">Achou erro nesta checagem? Avise</button>
       </details>
@@ -288,20 +288,23 @@ $('novos').onclick = () => { novosPendentes = 0; $('novos').hidden = true; $('fa
 
 // Card da revisão pós-debate: o que mudou em relação ao placar ao vivo, com link para a versão original
 function desenharRevisao(d) {
-  const r = d.revisao
-  $('revisao').hidden = !r
-  if (!r) return
+  const r = d.revisao, rem = d.removidas ?? []
+  $('revisao').hidden = !r && !rem.length
+  // checagens que o operador tirou durante o debate (ajustes.json): ficam listadas, não somem
+  const removidas = rem.length ? `<details><summary>${rem.length} checagem(ns) removida(s) durante o debate por conferência humana</summary><ul>${rem.map(m => `<li><b>${esc(d.candidatos[m.quem]?.nome)}</b>: ${esc(m.afirmacao)}
+      <span class="rev-de">${ROTULO[vered(m.veredito)]} → removida</span>${m.motivo ? `<small>${esc(m.motivo)}</small>` : ''}</li>`).join('')}</ul></details>` : ''
+  if (!r) return $('revisao').innerHTML = removidas
   const [A, B] = Object.keys(d.candidatos), erro = c => { const t = c.verdadeiro + c.impreciso + c.falso; return t ? Math.round((c.falso + c.impreciso / 2) / t * 100) + '%' : '–' }
   const mudou = r.mudancas.filter(m => m.depois && m.depois !== m.antes), saiu = r.mudancas.filter(m => !m.depois)
   $('revisao').innerHTML = `<p class="rev-linha"><b>✎ Dados revisados e corrigidos pelo ${esc(r.por)} após o debate.</b>
       ${mudou.length} vereditos corrigidos · ${saiu.length} checagens removidas · erro ao vivo → revisado:
-      <b>${esc(d.candidatos[A].nome)} ${erro(r.antes[A])} → ${erro(r.depois[A])}</b> ·
-      <b>${esc(d.candidatos[B].nome)} ${erro(r.antes[B])} → ${erro(r.depois[B])}</b></p>
+      <b>${esc(d.candidatos[A].nome)} ${erro(r.antes[A])} → ${erro(d.candidatos[A])}</b> ·
+      <b>${esc(d.candidatos[B].nome)} ${erro(r.antes[B])} → ${erro(d.candidatos[B])}</b></p>
     <details><summary>Ver detalhes da revisão</summary><p>${esc(r.resumo)}</p>
       ${filtro.vered !== 'corrigidos' ? '<p><button class="botao-texto" type="button" data-ver="corrigidos">Mostrar só os fatos corrigidos</button></p>' : ''}<ul>${r.mudancas.map(m => `<li><b>${esc(m.quem)}</b>: ${esc(m.afirmacao)}
       <span class="rev-de">${ROTULO[vered(m.antes)]} → ${m.depois ? (m.depois === m.antes ? 'mantido, explicação corrigida' : ROTULO[vered(m.depois)]) : 'removida'}</span>
       <small>${esc(m.motivo)}</small></li>`).join('')}</ul>
-    ${r.ao_vivo ? `<p><a href="?d=${encodeURIComponent(r.ao_vivo)}">Ver o placar como ficou ao vivo, sem a revisão</a></p>` : ''}</details>`
+    ${r.ao_vivo ? `<p><a href="?d=${encodeURIComponent(r.ao_vivo)}">Ver o placar como ficou ao vivo, sem a revisão</a></p>` : ''}</details>${removidas}`
 }
 
 // Linha do tempo: colunas de 5 min, do primeiro minuto com algo até o último, mesma escala para os dois

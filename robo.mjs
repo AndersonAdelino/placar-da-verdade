@@ -266,8 +266,8 @@ function depoisDe(limite, url, titulo, texto) {
   const tudo = `${titulo} ${texto}`.slice(0, 4000)
   m = tudo.slice(0, 800).match(/\b(\d{1,2})(?:\/(\d{1,2})\/(20\d\d|\d\d)| de (\p{L}+) de (20\d\d))\b/u)
   if (m) {
-    const ano = +(m[3] ?? m[5]), mes = m[2] ? +m[2] - 1 : MESES.indexOf(m[4])
-    if (new Date(Date.UTC(ano < 100 ? 2000 + ano : ano, mes, +m[1])) > limite) return true
+    const ano = +(m[3] ?? m[5]), mes = (m[2] ? +m[2] : MESES.indexOf(m[4].toLowerCase())) - 1
+    if (mes >= 0 && new Date(Date.UTC(ano < 100 ? 2000 + ano : ano, mes, +m[1])) > limite) return true
   }
   // texto que cita um ano posterior ao "agora" foi escrito depois dele
   return Math.max(0, ...(tudo.match(/\b20\d\d\b/g) ?? []).map(Number)) > limite.getUTCFullYear()
@@ -406,14 +406,18 @@ const historico = [] // últimos trechos de todo mundo, para o Haiku entender r�
 
 // O Haiku às vezes pega de novo uma afirmação do trecho anterior (que ele recebe como contexto), e dois
 // trechos seguidos podem estar sendo checados ao mesmo tempo. Trava no código: mesma pessoa + palavras
-// quase iguais a algo dos últimos 15 itens dela = repetido
+// quase iguais a algo dos últimos 15 itens dela = repetido. Números em outra ordem ou negação diferente = frase nova
+// ("caiu de 12 para 8" × "subiu de 8 para 12" × "não caiu de 12 para 8")
+// ponytail: antônimo sem número ("o desemprego caiu" × "subiu") ainda passa como repetido; lista de antônimos se aparecer no log
 const palavras = t => new Set(String(t).toLowerCase().match(/\p{L}{4,}|\d+/gu) ?? [])
+const numeros = t => String(t).replace(/(\d)[.,](?=\d)/g, '$1').match(/\d+/g)?.join(' ') ?? ''
+const nega = t => /(^|\P{L})(não|nunca|jamais|nem)(?!\p{L})/iu.test(t)
 function repetida(quem, frase, lista = recentes, limite = 30) {
   const novas = palavras(frase)
   const ja = lista[quem].some(velha => {
     const v = palavras(velha); let comuns = 0
     for (const p of novas) if (v.has(p)) comuns++
-    return comuns / Math.max(1, Math.min(novas.size, v.size)) > 0.6
+    return comuns / Math.max(1, Math.min(novas.size, v.size)) > 0.6 && numeros(frase) === numeros(velha) && nega(frase) === nega(velha)
   })
   if (!ja) lista[quem] = [...lista[quem], frase].slice(-limite)
   return ja
@@ -602,14 +606,19 @@ async function rejulgar() {
   console.log('rejulgando', fila.length, 'fatos com as regras atuais...')
   for (let i = 0; i < fila.length; i += 4) await Promise.all(fila.slice(i, i + 4).map(async d => {
     try {
-      const j = await julgar(d, d.quem), antes = d.veredito
-      if (!VEREDITOS.includes(j.veredito)) return // "descartar": mantém o veredito antigo
-      const c = placar.candidatos[d.quem]
-      c[antes] = Math.max(0, c[antes] - 1); c[j.veredito]++
+      const j = await julgar(d, d.quem), antes = d.veredito, c = placar.candidatos[d.quem]
+      // o veredito antigo sai da conta sempre: "descartar" tira a fala, "em_revisao" fica fora do placar
+      if (VEREDITOS.includes(antes)) c[antes] = Math.max(0, c[antes] - 1)
+      if (j.veredito === 'descartar') {
+        for (const f of placar.fatos) f.declaracoes = f.declaracoes.filter(x => x !== d)
+        return console.log(`\n[REJULGADO] ${nomeDe(d.quem)}: ${antes} → descartada · ${d.afirmacao}`)
+      }
+      if (VEREDITOS.includes(j.veredito)) c[j.veredito]++
       Object.assign(d, j)
       if (antes !== j.veredito) console.log(`\n[REJULGADO] ${nomeDe(d.quem)}: ${antes} → ${j.veredito} · ${d.afirmacao}\n   → ${j.motivo}`)
     } catch (e) { console.error('\nerro rejulgando:', e.message) }
   }))
+  placar.fatos = placar.fatos.filter(f => f.declaracoes.length)
   console.log('\nrejulgamento concluído'); publicar()
 }
 if (arg.rejulgar) rejulgar()
@@ -649,8 +658,10 @@ function ajustar() {
     if (!aj.trecho || !d.afirmacao.includes(aj.trecho)) return true
     const c = placar.candidatos[d.quem]
     if (VEREDITOS.includes(d.veredito)) c[d.veredito] = Math.max(0, c[d.veredito] - 1)
-    if (aj.remover) return console.log(`
+    // o que o operador muda fica público: antes/depois no card, removidas numa lista do placar
+    if (aj.remover) return (placar.removidas ??= []).push({ quem: d.quem, afirmacao: d.afirmacao, veredito: d.veredito, motivo: aj.motivo ?? '' }), console.log(`
 [AJUSTE] removido: ${d.afirmacao}`), false
+    d.corrigido ??= { antes: d.veredito, ao_vivo: true, ...(aj.afirmacao && { afirmacao_antes: d.afirmacao }) }
     Object.assign(d, { veredito: aj.veredito, motivo: aj.motivo, fonte: aj.fonte }, aj.afirmacao && { afirmacao: aj.afirmacao })
     if (VEREDITOS.includes(d.veredito)) c[d.veredito]++
     console.log(`
