@@ -586,15 +586,6 @@ $('como').addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') { pararAnimacao(); mostrarPasso(passo - 1) }
 })
 
-// Apoie o projeto: copia o código Pix (copia e cola) para colar no app do banco
-$('apoie-botao').onclick = () => $('apoio-janela').showModal()
-$('apoio-fechar').onclick = () => $('apoio-janela').close()
-$('apoio-janela').addEventListener('click', e => { if (e.target === $('apoio-janela')) $('apoio-janela').close() }) // clique fora fecha
-for (const b of document.querySelectorAll('.pix-copiar')) b.onclick = async () => {
-  try { await navigator.clipboard.writeText(b.dataset.pix); b.textContent = 'Código copiado ✓ Cole no app do banco'; b.classList.add('ok') }
-  catch { prompt('Copie o código Pix:', b.dataset.pix) }
-  setTimeout(() => { b.textContent = 'Copiar Pix copia e cola'; b.classList.remove('ok') }, 3000)
-}
 
 // Quantas pessoas estão com o site aberto agora e quantas visitas já teve
 function audiencia(espera = 2000, primeira = true) {
